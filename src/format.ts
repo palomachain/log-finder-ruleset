@@ -7,7 +7,7 @@ import {
   Amount,
   Action,
 } from "./types"
-import { defaultAction, formatLogs } from "./utility"
+import { defaultMsgAction, defaultMsgsAction, formatLogs } from "./utility"
 
 export const getTxCanonicalMsgs = (
   data: string,
@@ -34,7 +34,57 @@ export const getTxCanonicalMsgs = (
       (logMatched && logMatched.flat().length <= 0)
     ) {
       // not matched rulesets or transaction failed or log is null (old network)
-      const defaultCanonicalMsg = defaultAction(tx)
+      const defaultCanonicalMsg = defaultMsgsAction(tx)
+      return [defaultCanonicalMsg]
+    }
+
+    return logMatched
+  } catch {
+    const fragment = {
+      type: "Unknown",
+      attributes: [],
+    }
+    const transformed: Action = {
+      msgType: "unknown/terra",
+      canonicalMsg: ["Unknown tx"],
+      payload: fragment,
+    }
+
+    return [[{ fragment, match: [], transformed }]]
+  }
+}
+
+export const getTxAllCanonicalMsgs = (
+  data: string,
+  logMatcher: (events: Event[]) => ReturningLogFinderResult<Action>[][]
+): LogFinderActionResult[][] => {
+  try {
+    const tx: TxInfo.Data = JSON.parse(data)
+
+    const matched: LogFinderActionResult[][] | undefined = tx?.logs?.map(
+      (log, index) => {
+        const matchLog = logMatcher(log.events)
+
+        if (matchLog.flat().length === 0) {
+          const msg = tx.tx.value.msg[index]
+          matchLog[index] = [defaultMsgAction(msg)]
+        }
+
+        const matchedPerLog: LogFinderActionResult[] = matchLog
+          ?.flat()
+          .filter(Boolean)
+          .map((data) => {
+            return { ...data, timestamp: tx.timestamp }
+          })
+        return matchedPerLog
+      }
+    )
+
+    const logMatched = matched?.map((match) => collector(match))
+
+    if (logMatched === undefined || logMatched?.length === 0) {
+      // not matched rulesets or transaction failed or log is null (old network)
+      const defaultCanonicalMsg = defaultMsgsAction(tx)
       return [defaultCanonicalMsg]
     }
 
