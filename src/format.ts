@@ -54,6 +54,7 @@ export const getTxCanonicalMsgs = (
   }
 }
 
+//return array [logNumber][matched logNumber]
 export const getTxAllCanonicalMsgs = (
   data: string,
   logMatcher: (events: Event[]) => ReturningLogFinderResult<Action>[][]
@@ -85,9 +86,10 @@ export const getTxAllCanonicalMsgs = (
     if (logMatched === undefined || logMatched?.length === 0) {
       // not matched rulesets or transaction failed or log is null (old network)
       const defaultCanonicalMsg = defaultMsgsAction(tx)
-      // failed transaction tx log is null
-      // defaultMsgsAction is return array, array length is same msg length
-      return [defaultCanonicalMsg.map((msg) => msg)]
+
+      const msg = tx.tx.value.msg
+      // defaultMsgsAction array length is same msg length
+      return msg.map((_, index) => [defaultCanonicalMsg[index]])
     }
 
     return logMatched
