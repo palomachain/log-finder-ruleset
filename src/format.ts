@@ -85,7 +85,9 @@ export const getTxAllCanonicalMsgs = (
     if (logMatched === undefined || logMatched?.length === 0) {
       // not matched rulesets or transaction failed or log is null (old network)
       const defaultCanonicalMsg = defaultMsgsAction(tx)
-      return [defaultCanonicalMsg]
+      // failed transaction tx log is null
+      // defaultMsgsAction is return array, array length is same msg length
+      return [defaultCanonicalMsg.map((msg) => msg)]
     }
 
     return logMatched
