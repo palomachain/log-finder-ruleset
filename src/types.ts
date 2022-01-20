@@ -18,6 +18,25 @@ export interface Amount {
   withdraw_date?: string
 }
 
+export interface Msg {
+  type: string
+  message: any
+}
+
+export interface Log {
+  events: Event[]
+}
+
+export interface Event {
+  type: string
+  attributes: Attributes[]
+}
+
+export interface Attributes {
+  key: string
+  value: string
+}
+
 export interface LogFindersActionRuleSet {
   rule: LogFinderRule
   transform: ReturningLogFinderTransformer<Action>
@@ -40,7 +59,6 @@ export interface LogFinderActionResult {
 }
 
 export interface LogFinderAmountResult {
-  timestamp: string
   fragment: LogFragment
   match: {
     key: string
@@ -48,5 +66,4 @@ export interface LogFinderAmountResult {
   }[]
   height?: number
   transformed?: Amount
-  txhash?: string
 }

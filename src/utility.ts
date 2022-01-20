@@ -1,6 +1,5 @@
 import { ReturningLogFinderResult } from "@terra-money/log-finder"
-import { Msg, TxInfo } from "@terra-money/terra.js"
-import { Action, Amount, LogFinderActionResult } from "./types"
+import { Action, Amount, LogFinderActionResult, Msg } from "./types"
 
 const decodeBase64 = (str: string) => {
   try {
@@ -41,18 +40,12 @@ const decodeExecuteMsg = (str: string | object) => {
 export const formatLogs = (
   data: ReturningLogFinderResult<Amount>,
   msgType: string,
-  address: string,
-  timestamp: string,
-  txhash: string
+  address: string
 ) => {
   if (data.transformed) {
     const { transformed } = data
     const { type, withdraw_date } = transformed
-    const logData = {
-      ...data,
-      timestamp: timestamp,
-      txhash: txhash,
-    }
+    const logData = { ...data }
     if (type === "delegate" && msgType === "MsgDelegate") {
       return {
         ...logData,
@@ -75,24 +68,16 @@ export const formatLogs = (
     }
   }
 
-  return { ...data, timestamp: timestamp, txhash: txhash }
+  return { ...data }
 }
 
 export const attachDenom = (string: string) =>
   string.includes("uluna") ? `${string}` : `${string}uluna`
 
-export const defaultMsgsAction = (tx: TxInfo.Data) => {
-  const msgs = tx.tx.value.msg
-  const action: LogFinderActionResult[] = []
+export const defaultResults = (msgs: Msg[]): LogFinderActionResult[] =>
+  msgs.map((msg) => defaultResult(msg))
 
-  msgs.forEach((msg) => {
-    action.push(defaultMsgAction(msg))
-  })
-
-  return action
-}
-
-export const defaultMsgAction = (msg: Msg.Data) => {
+export const defaultResult = (msg: Msg): LogFinderActionResult => {
   const fragment = {
     type: "Unknown",
     attributes: [],
@@ -104,8 +89,8 @@ export const defaultMsgAction = (msg: Msg.Data) => {
   }
 
   if (msg.type === "wasm/MsgExecuteContract") {
-    const contract = msg.value.contract
-    const executeMsg = msg.value.execute_msg
+    const contract = msg.message.contract
+    const executeMsg = msg.message.execute_msg
 
     // successful wasm decode
     try {

@@ -1,6 +1,9 @@
 import { createReturningLogFinder } from "@terra-money/log-finder"
-import { Event } from "@terra-money/terra.js"
-import { LogFindersAmountRuleSet, LogFindersActionRuleSet } from "./types"
+import {
+  LogFindersAmountRuleSet,
+  LogFindersActionRuleSet,
+  Event,
+} from "./types"
 
 export const createLogMatcherForActions = (
   injectedLogFindersRuleSet: LogFindersActionRuleSet[] = []

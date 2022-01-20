@@ -19,7 +19,9 @@
     "url": "git://github.com/terra-money/log-finder-ruleset.git"
   },
   "dependencies": {
-    "@terra-money/log-finder": "^1.1.6",
-    "@terra-money/terra.js": "^2.0.5"
+    "@terra-money/log-finder": "^1.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.8"
   }
 }

@@ -1,53 +1,45 @@
-import { TxInfo, Event } from "@terra-money/terra.js"
 import { ReturningLogFinderResult } from "@terra-money/log-finder"
 import { collector } from "./collector"
+import { defaultResult, defaultResults, formatLogs } from "./utility"
 import {
   LogFinderActionResult,
   LogFinderAmountResult,
   Amount,
   Action,
+  Event,
+  Log,
+  Msg,
 } from "./types"
-import { defaultMsgAction, defaultMsgsAction, formatLogs } from "./utility"
 
-//return array [logs][matched logs]
+//return array [log][matched logs]
 export const getTxCanonicalMsgs = (
-  data: string,
+  logs: Log[],
+  msgs: Msg[],
   logMatcher: (events: Event[]) => ReturningLogFinderResult<Action>[][],
   getAllMsg?: boolean
 ): LogFinderActionResult[][] => {
   try {
-    const tx: TxInfo.Data = JSON.parse(data)
+    const matched: LogFinderActionResult[][] = logs.map((log, index) => {
+      const matchLog = logMatcher(log.events)
 
-    const matched: LogFinderActionResult[][] | undefined = tx?.logs?.map(
-      (log, index) => {
-        const matchLog = logMatcher(log.events)
-
-        if (matchLog.flat().length === 0 && getAllMsg) {
-          const msg = tx.tx.value.msg[index]
-          matchLog[index] = [defaultMsgAction(msg)]
-        }
-
-        const matchedPerLog: LogFinderActionResult[] = matchLog
-          ?.flat()
-          .filter(Boolean)
-          .map((data) => ({ ...data, timestamp: tx.timestamp }))
-        return matchedPerLog
+      if (!matchLog.flat().length && getAllMsg) {
+        const msg = msgs[index]
+        matchLog[index] = [defaultResult(msg)]
       }
-    )
 
-    const logMatched = matched?.map((match) => collector(match))
+      const matchedPerLog: LogFinderActionResult[] = matchLog
+        .flat()
+        .filter(Boolean)
+        .map((data) => ({ ...data }))
+      return matchedPerLog
+    })
 
-    if (!logMatched || (logMatched && logMatched.flat().length <= 0)) {
+    const logMatched = matched.map((match) => collector(match))
+
+    if (!logMatched.flat().length) {
       // not matched rulesets or transaction failed or log is null (old network)
-      const defaultCanonicalMsg = defaultMsgsAction(tx)
-
-      if (getAllMsg) {
-        const msg = tx.tx.value.msg
-        // defaultMsgsAction array length is same msg length
-        return msg.map((_, index) => [defaultCanonicalMsg[index]])
-      } else {
-        return [defaultCanonicalMsg]
-      }
+      const defaultLogs = defaultResults(msgs)
+      return getAllMsg ? defaultLogs.map((log) => [log]) : [defaultLogs]
     }
 
     return logMatched
@@ -67,31 +59,26 @@ export const getTxCanonicalMsgs = (
 }
 
 export const getTxAmounts = (
-  data: string,
+  logs: Log[],
+  msgs: Msg[],
   logMatcher: (events: Event[]) => ReturningLogFinderResult<Amount>[][],
   address: string
 ): LogFinderAmountResult[][] | undefined => {
   try {
-    const tx: TxInfo.Data = JSON.parse(data)
-    if (tx.logs) {
-      const msgTypes = tx.tx.value.msg
-      const { timestamp, txhash } = tx
+    const matched: LogFinderAmountResult[][] = logs.map((log, index) => {
+      const matchLog = logMatcher(log.events)
+      const matchedPerLog: LogFinderAmountResult[] = matchLog
+        .flat()
+        .filter(Boolean)
+        .map((data) => {
+          const msgType = msgs[index].type.split("/")[1]
+          return formatLogs(data, msgType, address)
+        })
 
-      const matched: LogFinderAmountResult[][] = tx.logs.map((log, index) => {
-        const matchLog = logMatcher(log.events)
-        const matchedPerLog: LogFinderAmountResult[] = matchLog
-          ?.flat()
-          .filter(Boolean)
-          .map((data) => {
-            const msgType = msgTypes[index].type.split("/")[1]
-            return formatLogs(data, msgType, address, timestamp, txhash)
-          })
+      return matchedPerLog
+    })
 
-        return matchedPerLog
-      })
-
-      return matched.flat().length > 0 ? matched : undefined
-    }
+    return matched.flat().length > 0 ? matched : undefined
   } catch {
     return undefined
   }

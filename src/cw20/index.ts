@@ -177,16 +177,16 @@ const create = () => {
     }),
   }
 
-  const transferRuleSet: LogFindersActionRuleSet = {
-    rule: rules.transferRule,
-    transform: (fragment, matched) => ({
-      msgType: "token/transfer",
-      canonicalMsg: [
-        `Transfer ${matched[4].value}${matched[0].value} to ${matched[3].value}`,
-      ],
-      payload: fragment,
-    }),
-  }
+  // const transferRuleSet: LogFindersActionRuleSet = {
+  //   rule: rules.transferRule,
+  //   transform: (fragment, matched) => ({
+  //     msgType: "token/transfer",
+  //     canonicalMsg: [
+  //       `${matched[2].value} send ${matched[4].value}${matched[0].value} to ${matched[3].value}`,
+  //     ],
+  //     payload: fragment,
+  //   }),
+  // }
 
   return [
     provideLiquidityRuleSet,
@@ -194,7 +194,7 @@ const create = () => {
     withdrawLiquidityRuleSetTypeA,
     withdrawLiquidityRuleSetTypeB,
     withdrawLiquidityRuleSetTypeC,
-    transferRuleSet,
+    //transferRuleSet,
   ]
 }
 
