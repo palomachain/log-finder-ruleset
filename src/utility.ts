@@ -95,7 +95,9 @@ export const defaultResult = (msg: Msg): LogFinderActionResult => {
     // successful wasm decode
     try {
       const decodeMsg = JSON.parse(decodeExecuteMsg(executeMsg))
-      const key = Object.keys(decodeMsg)[0]
+      const key =
+        typeof decodeMsg === "string" ? Object.keys(decodeMsg)[0] : decodeMsg
+
       const transformed: Action = {
         msgType: "wasm/execute",
         canonicalMsg: [`Execute ${key || "default"} on ${contract}`],
