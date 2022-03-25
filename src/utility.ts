@@ -96,7 +96,7 @@ export const defaultResult = (msg: Msg): LogFinderActionResult => {
     try {
       const decodeMsg = JSON.parse(decodeExecuteMsg(executeMsg))
       const key =
-        typeof decodeMsg === "string" ? Object.keys(decodeMsg)[0] : decodeMsg
+        typeof decodeMsg === "string" ? decodeMsg : Object.keys(decodeMsg)[0]
 
       const transformed: Action = {
         msgType: "wasm/execute",
