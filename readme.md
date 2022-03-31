@@ -14,7 +14,6 @@ import {
   getTxAmounts
 } from "@terra-money/log-finder-ruleset"
 
-// https://github.com/terra-money/tx-history-api
 const tx = {
   "height": ...,
   "txhash": ...,
